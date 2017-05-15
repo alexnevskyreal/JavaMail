@@ -100,5 +100,16 @@ public class StringUtil {
 		}
 		return false;
 	}
+	
+	/**
+	 * 获取文件夹名
+	 * @author chenguyan
+	 * @date 2017年5月11日  
+	 * @return
+	 */
+	public static String getFolderName() {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM");
+		return sdf.format(new Date());
+	}
  	
 }
