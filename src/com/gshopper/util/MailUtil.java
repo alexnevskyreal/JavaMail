@@ -3,18 +3,14 @@ package com.gshopper.util;
 import java.util.Properties;
 
 import javax.mail.Authenticator;
-import javax.mail.Folder;
-import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
-import javax.mail.Store;
 import javax.mail.Transport;
 import javax.mail.Message.RecipientType;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import javax.mail.search.SearchTerm;
 
 import org.apache.log4j.Logger;
 
@@ -28,26 +24,24 @@ public class MailUtil {
 	private static Logger logger = Logger.getLogger(MailUtil.class);
 	
 	/**
-	 * 获取邮件会话
+	 * 获取认证
 	 * @author chenguyan
 	 * @date 2017年5月3日  
 	 * @param prop
-	 * @return 会话
+	 * @return 
 	 */
-	public static Session getMailSession(final Properties prop) {
+	public static Authenticator getAuth(final Properties prop) {
 		// 构建授权信息，用于进行SMTP进行身份验证
 		Authenticator auth = new Authenticator() {
 			@Override
 			protected PasswordAuthentication getPasswordAuthentication() {
 				// TODO Auto-generated method stub
-				String userName = prop.getProperty("mail.user");
-                String password = prop.getProperty("mail.password");
+				String userName = prop.getProperty(Constant.MAIL_USER);
+                String password = prop.getProperty(Constant.MAIL_PASSWORD);
 				return new PasswordAuthentication(userName, password);
 			}
 		};
-		
-		// 使用环境属性和授权信息，创建邮件会话
-        return Session.getInstance(prop, auth);
+		return auth;
 	}
 	
 	/**
@@ -94,44 +88,4 @@ public class MailUtil {
 		return false;
 	}
 	
-	/**
-	 * 搜索邮件
-	 * @author chenguyan
-	 * @date 2017年5月8日  
-	 * @param searchTerm
-	 * @return
-	 */
-	public static Message[] searchMessage(SearchTerm searchTerm) {
-		Store store = null;
-		Folder folder = null;
-		Message[] messages = null;
-		try {
-			final Properties prop = PropUtil.getPropFromMail(); 
-	        System.out.println("Connecting " + prop.getProperty("mail.user") + " POP service...");
-	        
-	        Session mailSession = Session.getDefaultInstance(prop, null); // 获取会话
-	        
-	        store = mailSession.getStore("pop3"); // 创建商店并连接服务
-	        store.connect(prop.getProperty("mail.pop.host"), prop.getProperty("mail.user"), prop.getProperty("mail.password"));
-	        
-	        folder = store.getFolder("INBOX"); // 创建文件夹并打开
-	        folder.open(Folder.READ_WRITE);
-	        
-	        messages = folder.search(searchTerm);
-		} catch (MessagingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			logger.error(e.getMessage());
-		} finally {
-			try {
-				folder.close(false); // 关闭文件夹
-				store.close(); // 关闭商店
-			} catch (Exception e2) {
-				// TODO: handle exception
-				e2.printStackTrace();
-			}
-		}
-		return messages;
-	}
-
 }
