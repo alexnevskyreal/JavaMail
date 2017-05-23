@@ -15,7 +15,7 @@ public class Constant {
 	public final static String END_TIME_SUFFIX_FOR_FIRST = " 23:59:59";
 	public final static String START_TIME_SUFFIX_FOR_SECOND = " 00:00:00"; 
 	public final static String END_TIME_SUFFIX_FOR_SECOND = " 21:00:00";
-	public final static int MAX_MAIL_COUNT = 100;
+	public final static int AVG_MAX_MAIL_COUNT = 5;
 	public final static int APPEND_MAIL_COUNT = 200;
 	
 	/**

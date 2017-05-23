@@ -8,6 +8,8 @@ import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.mail.Folder;
 import javax.mail.Message;
@@ -176,7 +178,7 @@ public class Application {
 	        store.connect(prop.getProperty(Constant.MAIL_HOST), prop.getProperty(Constant.MAIL_USER), prop.getProperty(Constant.MAIL_PASSWORD));
 	        
 	        Folder folder = store.getFolder(Constant.MAIL_FOLDER); // 打开收件箱
-	        folder.open(Folder.READ_WRITE);
+	        folder.open(Folder.READ_ONLY);
 
 	        /**
 	         * 搜索所有邮件
@@ -218,16 +220,16 @@ public class Application {
 	         * 线程开启
 	         */
 	        System.out.println("searching");
+	        int threadPoolSize = Integer.parseInt(PropUtil.getValFromProp("/thread.properties", "thread.pool.size")); // 线程池大小
 	        int insertTotal = 0; // 插入总数
-	        if (secondMiddleLoc - firstMiddleLoc > Constant.MAX_MAIL_COUNT) { // 计算的邮件量大，采用多线程
-		        int threadPoolSize = Integer.parseInt(PropUtil.getValFromProp("/thread.properties", "thread.pool.size")); // 线程池大小
-	        	
+	        if (secondMiddleLoc - firstMiddleLoc > Constant.AVG_MAX_MAIL_COUNT * threadPoolSize) { // 计算的邮件量大，采用多线程（保证每个线程至少有几封邮件）
 	        	ExecutorService executor = Executors.newFixedThreadPool(threadPoolSize); // 固定线程池
+	        	
 	        	List<Future<Integer>> list = new ArrayList<Future<Integer>>();  
 	        	int startLoc = 0; // 开始位置
 	        	int endLoc = 0; // 结束位置
 	        	int averMessageCount = (secondMiddleLoc - firstMiddleLoc) / threadPoolSize; // 计算每个线程的邮件数
-	        	System.out.println(averMessageCount);
+	        	
 	        	for (int i = 1; i <= threadPoolSize; i++) {
 	        		if (i == 1) {
 	        			startLoc = firstMiddleLoc;
@@ -235,11 +237,11 @@ public class Application {
 	        			startLoc = firstMiddleLoc + (i - 1) * averMessageCount;
 	        		}
 	        		if (i == threadPoolSize) { // 最后一个线程
-	        			endLoc = secondMiddleLoc + Constant.APPEND_MAIL_COUNT;
+	        			endLoc = (secondMiddleLoc + Constant.APPEND_MAIL_COUNT) >= messageCount ? messageCount : (secondMiddleLoc + Constant.APPEND_MAIL_COUNT);
 	        		} else {
 	        			endLoc = startLoc + averMessageCount;
 	        		}
-	        		System.out.println(startLoc + "     " + endLoc);
+	        		
 	        		MailThread umailThread = new MailThread(daliyReportMapper, messages, startLoc, endLoc, startDate, endDate, subjects);
 	        		list.add(executor.submit(umailThread));	
 	        	}
@@ -249,16 +251,27 @@ public class Application {
 						break;
 					}
 				}
-	        	for (Future<Integer> future : list) { // 计算线程回调返回的结果
-	                insertTotal += future.get();
-	            }
+	        	
+	        	try { // 因为是线程异步回调结果，所以增加超时时间，捕获抛出的异常信息
+	        		for (Future<Integer> future : list) { // 计算线程回调返回的结果
+		                insertTotal += future.get(1, TimeUnit.DAYS); // 超时时间为天
+		            }
+				} catch (TimeoutException e) {
+					// TODO: handle exception
+					e.printStackTrace();
+					System.out.println("线程回调结果超时");
+				} catch (Exception e) {
+					// TODO: handle exception
+					e.printStackTrace();
+					logger.error(e.getMessage());
+				}
 	        } else { // 计算的邮件量小，采用单线程
 	        	if (firstMiddleLoc > secondMiddleLoc) { // 互换位置
 	        		int temp = firstMiddleLoc;
 	        		firstMiddleLoc = secondMiddleLoc;
 	        		secondMiddleLoc = temp;
 	        	}
-	        	MailThread mailThread = new MailThread(daliyReportMapper, messages, firstMiddleLoc, secondMiddleLoc + Constant.APPEND_MAIL_COUNT, startDate, endDate, subjects);
+	        	MailThread mailThread = new MailThread(daliyReportMapper, messages, firstMiddleLoc, (secondMiddleLoc + Constant.APPEND_MAIL_COUNT) >= messageCount ? messageCount : (secondMiddleLoc + Constant.APPEND_MAIL_COUNT), startDate, endDate, subjects);
 	        	insertTotal = mailThread.call();
 	        }
 	        
@@ -303,8 +316,6 @@ public class Application {
     private static void searchMiddleLocForMuiltiThread(Message[] messages, Date startDate, Date endDate, int middlePreLoc, int middleNextLoc, boolean isFirst) {
     	try {
         	Message message = messages[middleNextLoc - 1];
-//        	System.out.println((isFirst ? "第一次" : "第二次") + "   " + StringUtil.dateToStr(message.getSentDate()) + "  " + StringUtil.dateToStr(startDate) + " ~ " + StringUtil.dateToStr(endDate) + "   " + middlePreLoc + "   " + middleNextLoc);
-        	
         	int compare = StringUtil.compareDate(message.getSentDate(), startDate, endDate);
         	switch (compare) { 
 			case 1: // 大于结束日期

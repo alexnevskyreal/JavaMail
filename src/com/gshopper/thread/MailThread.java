@@ -47,10 +47,6 @@ public class MailThread implements Callable<Integer> {
 		int compareSign = 0;
 		
 		for (int i = startLoc; i < endLoc; i++) { // 遍历邮件，从开始位置到结束
-			if (i >= messages.length) { // 大于邮件总数，则退出
-				break;
-			}
-			
 			message = messages[i]; 
 			if (!message.getFolder().isOpen()) {
 				message.getFolder().open(Folder.READ_ONLY);
@@ -81,7 +77,6 @@ public class MailThread implements Callable<Integer> {
 			if (isMatch) { // 标题已匹配
 				DaliyReport daliyReport = new DaliyReport(message.getSentDate(), message.getFrom().length > 0 ? StringUtil.getMailFromRegEx(message.getFrom()[0] + "") : "", message.getSubject(), message.getSize()); // 三目表达式获取邮件来源
 				list.add(daliyReport); // 满足条件则添加
-//				System.out.println(Thread.currentThread().getName() + "  " +message.getSentDate() + "   " + (message.getFrom().length > 0 ? StringUtil.getMailFromRegEx(message.getFrom()[0] + "") : ""));
 			}
 		}
 		
