@@ -21,8 +21,8 @@ public class Constant {
 	/**
 	 * 邮件配置
 	 */
-	public final static String MAIL_PROTOCAL = "imap";
-	public final static String MAIL_HOST = "mail.imap.host";
+	public final static String MAIL_PROTOCAL = "pop3";
+	public final static String MAIL_HOST = "mail.pop.host";
 	public final static String MAIL_USER = "mail.user";
 	public final static String MAIL_PASSWORD = "mail.password";
 	public final static String MAIL_FOLDER = "INBOX";

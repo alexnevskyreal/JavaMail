@@ -191,10 +191,10 @@ public class Application {
 	        /**
 	         * 相关算法（扩大客户端输入的开始结束俩个时间点，分别扩大一些时间，中间排序获取俩个时间点的位置，再用多线程批量跑）
 	         */
-	        Date firstStartDate = StringUtil.getDateFromDay(args[0] + Constant.START_TIME_SUFFIX_FOR_FIRST, -1); // 第一次开始时间，扩大客户端输入的开始时间
-	        Date firstEndDate = StringUtil.getDateFromDay(args[0] + Constant.END_TIME_SUFFIX_FOR_FIRST, -1); // 第一次结束时间
+	        Date firstStartDate = StringUtil.getDateFromDay(args[0] + Constant.START_TIME_SUFFIX_FOR_FIRST, -3); // 第一次开始时间，扩大客户端输入的开始时间
+	        Date firstEndDate = StringUtil.getDateFromDay(args[0] + Constant.END_TIME_SUFFIX_FOR_FIRST, -3); // 第一次结束时间
 	        searchMiddleLocForMuiltiThread(messages, firstStartDate, firstEndDate, messageCount, messageCount / 2, true); // 搜索中间位置为多线程，第一次
-    		System.out.println("First middle loc: " + firstMiddleLoc);
+//    		System.out.println("First middle loc: " + firstMiddleLoc);
 	        
 	        if (!StringUtil.compareDate2(args[1], StringUtil.dateToStr2(new Date()))) { // 结束日期大于当前时间，则改为最后一位位置
 	        	secondMiddleLoc = messageCount; 
@@ -203,7 +203,7 @@ public class Application {
 		        Date secondEndDate = StringUtil.getDateFromDay(args[1] + Constant.END_TIME_SUFFIX_FOR_SECOND, 1); // 第二次结束时间
 		        searchMiddleLocForMuiltiThread(messages, secondStartDate, secondEndDate, messageCount, messageCount / 2, false); // 搜索中间位置为多线程，第二次
 	        }
-    		System.out.println("Second middle loc: " + secondMiddleLoc);
+//    		System.out.println("Second middle loc: " + secondMiddleLoc);
         	
 	        /**
 	         * 配置线程所用属性

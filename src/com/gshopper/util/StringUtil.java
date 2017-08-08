@@ -197,7 +197,7 @@ public class StringUtil {
 		if (originalStr == null || StringUtils.isEmpty(originalStr)) {
 			return false;
 		}
-		return originalStr.contains(containStr);
+		return originalStr.toLowerCase().contains(containStr.toLowerCase()); // 不区分大小写
 	}
 	
 	/**

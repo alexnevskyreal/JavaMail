@@ -77,6 +77,7 @@ public class MailThread implements Callable<Integer> {
 			if (isMatch) { // 标题已匹配
 				DaliyReport daliyReport = new DaliyReport(message.getSentDate(), message.getFrom().length > 0 ? StringUtil.getMailFromRegEx(message.getFrom()[0] + "") : "", message.getSubject(), message.getSize()); // 三目表达式获取邮件来源
 				list.add(daliyReport); // 满足条件则添加
+//				System.out.println(Thread.currentThread().getName() + " - " + daliyReport.toString());
 			}
 		}
 		
